@@ -7,7 +7,7 @@ def main():
     s.post(
         "http://localhost:8888/enter", data={"username": "blue", "password": "admin"}
     )
-    r = s.get("http://localhost:8888/api/v2/abilities")
+    r = s.get("http://localhost:8888/api/v2/agents")
     print(r.text)
 
 
