@@ -10,6 +10,9 @@ on:
 
 jobs:
   build-and-push-image:
+    permissions:
+      packages: write
+      contents: read
     name: Build and Push Kathara Caldera Image
     runs-on: ubuntu-latest
     steps:
