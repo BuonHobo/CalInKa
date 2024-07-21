@@ -20,4 +20,4 @@ jobs:
         with:
           file: docker/Dockerfile
           push: true
-          tags: buonhobo/calinka:latest
+          tags: ghcr.io/buonhobo/calinka:latest
