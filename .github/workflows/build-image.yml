@@ -3,7 +3,7 @@ name: Build and Push Kathara Caldera Image
 on:
   push:
     paths:
-      - docker/Dockerfile
+      - docker/
   schedule:
     - cron: "0 0 * * 0"
   workflow_dispatch:
@@ -29,6 +29,13 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
-          file: docker/Dockerfile
+          file: docker/controller/Dockerfile
           push: true
-          tags: ghcr.io/buonhobo/calinka:latest
+          tags: ghcr.io/buonhobo/controller:latest
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          file: docker/agent/Dockerfile
+          push: true
+          tags: ghcr.io/buonhobo/agent:latest
