@@ -2,3 +2,4 @@
 .envrc
 pyrightconfig.json
 .zed/
+__pycache__

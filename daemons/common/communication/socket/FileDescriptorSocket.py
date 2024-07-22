@@ -1,5 +1,5 @@
 from os import read, write
-from ISocket import ISocket
+from .ISocket import ISocket
 
 
 class FileDescriptorSocket(ISocket):

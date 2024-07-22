@@ -5,24 +5,21 @@ from Kathara.manager.Kathara import Kathara
 import threading
 
 
-class Device:
+class MachineConnection:
     def __init__(self, machine: Machine):
         self.machine = machine
 
 
 class Provisioner:
     def __init__(self, lab: Lab):
-        self.devices: dict[str, Device] = {}
+        self.connections: dict[str, MachineConnection] = {}
         self.lab = lab
 
     def deploy(self):
         pass
 
-    def add_device(self, device: Machine):
-        self.devices[device.name] = Device(device)
+    def new_device(self, ):
 
-    def add_devices(self, devices: Iterable[Machine]):
-        self.devices.update({device.name: Device(device) for device in devices})
 
 
 def main():
