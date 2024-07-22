@@ -7,12 +7,15 @@ def main():
 
     red = lab.new_machine(
         "red",
-        bridged=True,
+        image="ghcr.io/buonhobo/agent:latest",
     )
-    blue = lab.new_machine("blue")
+    blue = lab.new_machine(
+        "blue",
+        image="ghcr.io/buonhobo/agent:latest",
+    )
     controller = lab.new_machine(
         "controller",
-        image="ghcr.io/buonhobo/calinka:latest",
+        image="ghcr.io/buonhobo/controller:latest",
         bridged=True,
         ports=["8888:8888"],
     )
