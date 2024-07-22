@@ -30,8 +30,6 @@ def main():
 
         server="http://10.10.10.10:8888";
 
-        pip install marshmallow --break-system-packages;
-
         until curl --output /dev/null --silent --fail $server; do
             sleep 1
         done
@@ -74,13 +72,24 @@ def main():
 
     Kathara.get_instance().deploy_lab(lab)
 
-    out = Kathara.get_instance().exec(
+    Kathara.get_instance().exec(
         machine_name="red",
-        command="python /agent/agent.py < /agent/in > /agent/out",
+        command="bash -c 'python3 /agent/agent.py < /agent/in > /agent/out &'",
         lab=lab,
         wait=True,
         stream=True,
     )
+
+    o = Kathara.get_instance().exec(
+        machine_name="red",
+        command="bash -c 'ps aux'",
+        lab=lab,
+        wait=True,
+        stream=False,
+    )
+
+    print("agent started")
+    print(o)
 
     out = Kathara.get_instance().exec(
         machine_name="red",
@@ -96,7 +105,7 @@ def main():
         print(a)
 
     # Kathara.get_instance().connect_tty(machine_name="red", lab=lab)
-    Kathara.get_instance().wipe()
+    # Kathara.get_instance().wipe()
 
 
 if __name__ == "__main__":

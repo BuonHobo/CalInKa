@@ -199,7 +199,7 @@ class SocketListener:
                 self.accept_packet()
 
 
-class SessionHandler:  # Deve gestire molte sessioni e gestire il dispatching
+class SessionHandler:
 
     instance = None
 
