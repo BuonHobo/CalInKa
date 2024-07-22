@@ -1,5 +1,28 @@
+from typing import Iterable
+from Kathara.model.Machine import Machine
 from Kathara.model.Lab import Lab
 from Kathara.manager.Kathara import Kathara
+import threading
+
+
+class Device:
+    def __init__(self, machine: Machine):
+        self.machine = machine
+
+
+class Provisioner:
+    def __init__(self, lab: Lab):
+        self.devices: dict[str, Device] = {}
+        self.lab = lab
+
+    def deploy(self):
+        pass
+
+    def add_device(self, device: Machine):
+        self.devices[device.name] = Device(device)
+
+    def add_devices(self, devices: Iterable[Machine]):
+        self.devices.update({device.name: Device(device) for device in devices})
 
 
 def main():
@@ -27,16 +50,6 @@ def main():
     lab.create_file_from_string(
         """
         ip a add 10.10.10.11/24 dev eth0
-
-        server="http://10.10.10.10:8888";
-
-        until curl --output /dev/null --silent --fail $server; do
-            sleep 1
-        done
-
-        curl -s -X POST -H "file:sandcat.go" -H "platform:linux" $server/file/download > splunkd;
-        chmod +x splunkd;
-        ./splunkd -server $server -group red -v &
         """,
         dst_path="red.startup",
     )
@@ -44,16 +57,6 @@ def main():
     lab.create_file_from_string(
         """
         ip a add 10.10.10.12/24 dev eth0
-
-        server="http://10.10.10.10:8888";
-
-        until curl --output /dev/null --silent --fail $server; do
-            sleep 1
-        done
-
-        curl -s -X POST -H "file:sandcat.go" -H "platform:linux" $server/file/download > splunkd;
-        chmod +x splunkd;
-        ./splunkd -server $server -group blue -v &
         """,
         dst_path="blue.startup",
     )
@@ -61,9 +64,6 @@ def main():
     lab.create_file_from_string(
         """
         ip a add 10.10.10.10/24 dev eth0
-
-        cd /caldera
-        python3 server.py --insecure &
         """,
         dst_path="controller.startup",
     )
@@ -74,33 +74,36 @@ def main():
 
     Kathara.get_instance().exec(
         machine_name="red",
-        command="bash -c 'python3 /agent/agent.py< /agent/in >/agent/out &'",
+        command="bash -c 'python3 /agent/agent.py < /agent/in > /agent/out &'",
         lab=lab,
         wait=True,
-        stream=True,
     )
-
-    o = Kathara.get_instance().exec(
-        machine_name="red",
-        command="bash -c 'ps aux'",
-        lab=lab,
-        wait=True,
-        stream=False,
-    )
-
-    print("agent started")
-    print(o)
 
     print("started tailing", flush=True)
     out = Kathara.get_instance().exec(
         machine_name="red",
         command="cat /agent/out",
         lab=lab,
-        wait=True,
         stream=True,
     )
+
+    p = '{"src": "controller", "dest": "agent", "type": "Handshake", "payload": {"role": "agent"}}'
+    s = f"bash -c 'cat <<EOF > /agent/in\n{p}\nEOF\n'"
+
+    Kathara.get_instance().exec(
+        "red",
+        s,
+        None,
+        None,
+        lab,
+    )
+
+    # threading.Thread(
+    #     target=lambda: Kathara.get_instance().connect_tty(machine_name="red", lab=lab)
+    # ).start()
+
     for a, _ in out:
-        print(a, flush=True)
+        print("out", a, flush=True)
 
     # Kathara.get_instance().connect_tty(machine_name="red", lab=lab)
     # Kathara.get_instance().wipe()

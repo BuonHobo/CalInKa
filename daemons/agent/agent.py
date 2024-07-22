@@ -39,37 +39,6 @@ class ClientRegistry:
         return cls.instance
 
 
-class ISocket(ABC):
-    @abstractmethod
-    def send(self, data: str):
-        pass
-
-    @abstractmethod
-    def recv(self, size: int) -> str:
-        pass
-
-
-class FileDescriptorSocket(ISocket):
-    stdin = open(0, "r")
-    stdout = open(1, "w")
-    instance = None
-
-    def __init__(self) -> None:
-        self.instance = self
-
-    def __new__(cls):
-        if not cls.instance:
-            return super().__new__(cls)
-        return cls.instance
-
-    def send(self, data: str):
-        self.stdout.write(data)
-        self.stdout.flush()
-
-    def recv(self, size: int) -> str:
-        return self.stdin.read(size)
-
-
 class IMessage(ABC):
 
     @property
@@ -150,7 +119,7 @@ class Client:
 
         ###########
 
-        self.send(HandshakeResponse(True))
+        self.send(HandshakeResponse(True))  # Da togliere
 
 
 class Session:
@@ -176,27 +145,42 @@ class Session:
 
 
 class SocketListener:
+
+    bufsize = 1024
+
     def __init__(self, socket: ISocket):
         self.socket = socket
+        self.buffer = ""
+
+    def buffered_read(self, size: int = bufsize):
+        if len(self.buffer) >= size:
+            res = self.buffer[:size]
+            self.buffer = self.buffer[size:]
+            return res
+        else:
+            reading = max(size - len(self.buffer), self.bufsize)
+            self.buffer += self.socket.recv(reading)
+            res = self.buffer[:size]
+            self.buffer = self.buffer[size:]
+            return res
 
     def accept_packet(self):
-        buffer = "{"
+        buf = "{"
         depth = 1
         while True:
-            c = self.socket.recv(1)
+            c = self.buffered_read(1)
             if c == "{":
                 depth += 1
             elif c == "}":
                 depth -= 1
-
-            buffer += c
+            buf += c
             if depth == 0:
-                SessionHandler().handle(buffer)
+                SessionHandler().handle(buf)
                 return
 
     def listen(self):
         while True:
-            c = self.socket.recv(1)
+            c = self.buffered_read(1)
             if c == "{":
                 self.accept_packet()
 
