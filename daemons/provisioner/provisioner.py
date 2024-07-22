@@ -74,7 +74,7 @@ def main():
 
     Kathara.get_instance().exec(
         machine_name="red",
-        command="bash -c 'python3 /agent/agent.py < /agent/in > /agent/out &'",
+        command="bash -c 'python3 /agent/agent.py< /agent/in >/agent/out &'",
         lab=lab,
         wait=True,
         stream=True,
@@ -91,18 +91,16 @@ def main():
     print("agent started")
     print(o)
 
+    print("started tailing", flush=True)
     out = Kathara.get_instance().exec(
         machine_name="red",
-        command="tail -f /agent/out",
+        command="cat /agent/out",
         lab=lab,
         wait=True,
         stream=True,
     )
-
-    print("started tailing", flush=True)
-
     for a, _ in out:
-        print(a)
+        print(a, flush=True)
 
     # Kathara.get_instance().connect_tty(machine_name="red", lab=lab)
     # Kathara.get_instance().wipe()

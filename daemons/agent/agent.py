@@ -2,6 +2,7 @@ from __future__ import annotations
 from typing import Self
 from abc import ABC, abstractmethod
 from os import environ, read, sync, write, fsync
+import sys
 from queue import Queue
 from enum import Enum
 import threading
@@ -49,8 +50,8 @@ class ISocket(ABC):
 
 
 class FileDescriptorSocket(ISocket):
-    stdin = 0
-    stdout = 1
+    stdin = open(0, "r")
+    stdout = open(1, "w")
     instance = None
 
     def __init__(self) -> None:
@@ -62,10 +63,11 @@ class FileDescriptorSocket(ISocket):
         return cls.instance
 
     def send(self, data: str):
-        write(self.stdout, bytes(data + "\n", encoding="utf-8"))
+        self.stdout.write(data)
+        self.stdout.flush()
 
     def recv(self, size: int) -> str:
-        return str(read(self.stdin, size), encoding="utf-8")
+        return self.stdin.read(size)
 
 
 class IMessage(ABC):
