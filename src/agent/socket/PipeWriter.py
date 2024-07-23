@@ -10,7 +10,7 @@ class PipeWriter:
         output_pipe_path.unlink(missing_ok=True)
         os.mkfifo(output_pipe_path, 0o600)
 
-        self.output_pipe_path = output_pipe_path
+        self.__output_pipe_path = output_pipe_path
 
     def write(self, data: str):
-        self.output_pipe_path.write_text(data, encoding="utf-8", newline="")
+        self.__output_pipe_path.write_text(data, encoding="utf-8", newline="")

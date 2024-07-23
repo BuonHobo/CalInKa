@@ -8,8 +8,8 @@ from agent.socket.ISocket import ISocket
 class Dispatcher:
 
     def __init__(self, pipeWriter: PipeWriter):
-        self.pipeWriter = pipeWriter
-        self.handlers: defaultdict[
+        self.__pipeWriter = pipeWriter
+        self.__handlers: defaultdict[
             type[IMessage], list[Callable[[Packet, Self], Awaitable[None]]]
         ] = defaultdict(list)
 
@@ -20,7 +20,7 @@ class Dispatcher:
         except Exception as e:
             print(f"Error: {e}")
             return
-        if handlers := self.handlers.get(type(packet.message)):
+        if handlers := self.__handlers.get(type(packet.message)):
             for handler in handlers:
                 await handler(packet, self)
 
@@ -29,7 +29,7 @@ class Dispatcher:
         message_type: type[IMessage],
         handler: Callable[[Packet, Self], Awaitable[None]],
     ):
-        self.handlers[message_type].append(handler)
+        self.__handlers[message_type].append(handler)
 
     async def send(self, packet: Packet):
-        self.pipeWriter.write(packet.to_json())
+        self.__pipeWriter.write(packet.to_json())

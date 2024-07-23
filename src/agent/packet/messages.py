@@ -91,12 +91,3 @@ class PacketSchema(IMessageSchema):
     def add_type(self, data, **kwargs):
         self.context["kind"] = data.get("kind")
         return data
-
-
-class InvalidPayload(IMessage):
-    def __init__(self, packet: str):
-        self.packet = packet
-
-
-class InvalidPayloadSchema(IMessageSchema):
-    packet = fields.Str(required=True)

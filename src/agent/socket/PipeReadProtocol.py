@@ -11,18 +11,18 @@ class PipeReadProtocol(asyncio.Protocol):
         input_pipe_path.unlink(missing_ok=True)
         os.mkfifo(input_pipe_path, 0o600)
 
-        self.input_pipe_path = input_pipe_path
-        self.buffer = ""
-        self.depth = 0
-        self.is_packet = False
-        self.dispatcher = dispatcher
+        self.__input_pipe_path = input_pipe_path
+        self.__buffer = ""
+        self.__depth = 0
+        self.__is_packet = False
+        self.__dispatcher = dispatcher
 
     def listen(self):
         loop = asyncio.get_event_loop()
         loop.create_task(
             loop.connect_read_pipe(
                 lambda: self,
-                self.input_pipe_path.open("r"),
+                self.__input_pipe_path.open("r"),
             )
         )
 
@@ -31,21 +31,21 @@ class PipeReadProtocol(asyncio.Protocol):
 
         for c in data:
             if c == "{":
-                self.depth += 1
-                self.is_packet = True
+                self.__depth += 1
+                self.__is_packet = True
             elif c == "}":
-                self.depth -= 1
+                self.__depth -= 1
 
-            self.depth = max(self.depth, 0)
+            self.__depth = max(self.__depth, 0)
 
-            if self.is_packet:
-                self.buffer += c
-                if self.depth == 0:
+            if self.__is_packet:
+                self.__buffer += c
+                if self.__depth == 0:
                     asyncio.get_event_loop().create_task(
-                        self.dispatcher.handle(self.buffer)
+                        self.__dispatcher.handle(self.__buffer)
                     )
-                    self.buffer = ""
-                    self.is_packet = False
+                    self.__buffer = ""
+                    self.__is_packet = False
 
     def connection_lost(self, exc):
         self.listen()
