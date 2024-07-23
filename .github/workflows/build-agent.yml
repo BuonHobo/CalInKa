@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - docker/agent/Dockerfile
+      - src/**
   workflow_dispatch:
 
 jobs:

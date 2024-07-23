@@ -5,21 +5,21 @@ from Kathara.manager.Kathara import Kathara
 import threading
 
 
-# class MachineConnection:
-#     def __init__(self, machine: Machine):
-#         self.machine = machine
+class MachineConnection:
+    def __init__(self, machine: Machine):
+        self.machine = machine
 
 
-# class Provisioner:
-#     def __init__(self, lab: Lab):
-#         self.connections: dict[str, MachineConnection] = {}
-#         self.lab = lab
+class Provisioner:
+    def __init__(self, lab: Lab):
+        self.connections: dict[str, MachineConnection] = {}
+        self.lab = lab
 
-#     def deploy(self):
-#         pass
+    def deploy(self):
+        pass
 
-#     def new_device(self):
-#         pass
+    def new_device(self):
+        pass
 
 
 def main():
@@ -35,7 +35,7 @@ def main():
     )
     controller = lab.new_machine(
         "controller",
-        image="ghcr.io/buonhobo/controller:latest",
+        image="ghcr.io/buonhobo/agent:latest",
         bridged=True,
         ports=["8888:8888"],
     )
@@ -65,13 +65,11 @@ def main():
         dst_path="controller.startup",
     )
 
-    red.copy_directory_from_path("src", "/src")
-
     Kathara.get_instance().deploy_lab(lab)
 
     Kathara.get_instance().exec(
         machine_name="red",
-        command="bash -c 'python3 /src/agent.py /pipe/in /pipe/out red agent &'",
+        command="bash -c 'python3 /calinka/agent.py /pipe/in /pipe/out red agent &'",
         lab=lab,
         wait=True,
     )
