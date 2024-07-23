@@ -94,7 +94,8 @@ def main():
     )
 
     for a, _ in out:
-        print("out", a, flush=True)
+        if a:
+            print(a, flush=True)
 
     Kathara.get_instance().connect_tty("red", lab=lab)
 

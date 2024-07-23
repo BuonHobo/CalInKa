@@ -1,7 +1,7 @@
 from agent.socket.PipeWriter import PipeWriter
 from agent.dispatch.Dispatcher import Dispatcher
 from agent.socket.PipeReadProtocol import PipeReadProtocol
-from agent.packet.messages import Poke, Packet
+from common.packet.messages import Poke, Packet
 from agent.config.Settings import Settings
 
 import asyncio
@@ -15,7 +15,7 @@ async def return_poke(packet: Packet, dispatcher: Dispatcher):
     poke = packet.message
     assert isinstance(poke, Poke)
     poke.num += 1
-    await dispatcher.send(packet.reply(poke))
+    await dispatcher.send(packet.reply(poke, Settings().sender))
 
 
 async def main():

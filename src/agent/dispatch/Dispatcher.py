@@ -1,6 +1,6 @@
 from collections import defaultdict
 from typing import Awaitable, Callable, Coroutine, Self
-from agent.packet.messages import IMessage, Packet
+from common.packet.messages import IMessage, Packet
 from agent.socket.PipeWriter import PipeWriter
 
 

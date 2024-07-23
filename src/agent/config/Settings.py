@@ -1,28 +1,28 @@
 import sys
 from pathlib import Path
 
-from agent.packet.Sender import Role
+from common.packet.Sender import Role
+from common.packet.Sender import Sender
+import common.config.Settings as common_settings
 
 
-class Settings(object):
-    def __new__(cls, *args, **kwds):
-        it = cls.__dict__.get("__it__")
-        if it is not None:
-            return it
-        cls.__it__ = it = object.__new__(cls)
-        it.init(*args, **kwds)
-        return it
+class Settings(common_settings.Settings):
 
     def init(self, *args, **kwds):
+        super().init(*args, **kwds)
         try:
             self.input_pipe_path = Path(sys.argv[1])
             self.output_pipe_path = Path(sys.argv[2])
             self.hostname = sys.argv[3]
             self.role = Role(sys.argv[4].upper())
+            self.sender = Sender(self.hostname, self.role)
+
         except IndexError:
+
             if len(sys.argv) == 2 and sys.argv[1] == "--check":
-                print("Calinka is available.")
+                print(common_settings.Settings.check_phrase)
                 sys.exit(0)
+
             print(
                 f"Usage: {sys.argv[0]} <input_pipe_path> <output_pipe_path> <hostname> <role>"
             )
