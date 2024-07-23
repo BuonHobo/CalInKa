@@ -95,15 +95,8 @@ def main():
         lab,
     )
 
-    # threading.Thread(
-    #     target=lambda: Kathara.get_instance().connect_tty(machine_name="red", lab=lab)
-    # ).start()
-
     for a, _ in out:
         print("out", a, flush=True)
-
-    # Kathara.get_instance().connect_tty(machine_name="red", lab=lab)
-    # Kathara.get_instance().wipe()
 
 
 if __name__ == "__main__":
