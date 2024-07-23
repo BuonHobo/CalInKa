@@ -6,5 +6,6 @@ from agent.packet.messages import Poke, Packet
 s = FdSocket()
 d = Dispatcher(s)
 l = SocketListener(s, d)
+
 print(Packet.from_message(Poke(3), "gee").to_json())
 l.listen()
