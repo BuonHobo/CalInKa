@@ -18,8 +18,8 @@ class Provisioner:
     def deploy(self):
         pass
 
-    def new_device(self, ):
-
+    def new_device(self):
+        pass
 
 
 def main():
@@ -65,13 +65,13 @@ def main():
         dst_path="controller.startup",
     )
 
-    red.create_file_from_path("../agent/agent.py", "/agent/agent.py")
+    red.copy_directory_from_path("src", "/src")
 
     Kathara.get_instance().deploy_lab(lab)
 
     Kathara.get_instance().exec(
         machine_name="red",
-        command="bash -c 'python3 /agent/agent.py < /agent/in > /agent/out &'",
+        command="bash -c 'python3 /src/agent.py < /agent/in > /agent/out &'",
         lab=lab,
         wait=True,
     )
@@ -84,7 +84,7 @@ def main():
         stream=True,
     )
 
-    p = '{"src": "controller", "dest": "agent", "type": "Handshake", "payload": {"role": "agent"}}'
+    p = '{"src": {"name": "desktop", "role": "AGENT"}, "dst": "gee", "kind": "Poke", "message": {"num": 3}}'
     s = f"bash -c 'cat <<EOF > /agent/in\n{p}\nEOF\n'"
 
     Kathara.get_instance().exec(
