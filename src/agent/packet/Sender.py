@@ -1,5 +1,11 @@
-from agent.packet.Role import Role
 from marshmallow import Schema, fields, post_load
+from enum import Enum
+
+
+class Role(Enum):
+    AGENT = "AGENT"
+    CONTROLLER = "CONTROLLER"
+    PROVISIONER = "PROVISIONER"
 
 
 class Sender:

@@ -1,11 +1,56 @@
-from agent.socket.FdSocket import FdSocket
+from agent.socket.PipeWriter import PipeWriter
 from agent.dispatch.Dispatcher import Dispatcher
-from agent.socket.SocketListener import SocketListener
+from agent.socket.PipeReadProtocol import PipeReadProtocol
 from agent.packet.messages import Poke, Packet
 
-s = FdSocket()
-d = Dispatcher(s)
-l = SocketListener(s, d)
+import asyncio
+from pathlib import Path
+import sys
+import os
+import signal
 
-print(Packet.from_message(Poke(3), "gee").to_json())
-l.listen()
+
+async def return_poke(packet: Packet, dispatcher: Dispatcher):
+    poke = packet.message
+    assert isinstance(poke, Poke)
+    poke.num += 1
+    await dispatcher.send(packet.reply(poke))
+
+
+async def main(input_pipe_path: Path, output_pipe_path: Path, hostname: str, role: str):
+
+    dispatcher = Dispatcher(PipeWriter(output_pipe_path))
+    pipeReader = PipeReadProtocol(dispatcher, input_pipe_path)
+    await dispatcher.register(Poke, return_poke)
+    pipeReader.listen()
+
+
+def shutdown(input_pipe_path: Path, output_pipe_path: Path):
+    print("\nDeleting Pipes before shutting down...")
+    os.close(2)
+    os.remove(input_pipe_path)
+    os.remove(output_pipe_path)
+    exit(0)
+
+
+if __name__ == "__main__":
+
+    try:
+        input_pipe_path = Path(sys.argv[1])
+        output_pipe_path = Path(sys.argv[2])
+        hostname = sys.argv[3]
+        role = sys.argv[4]
+    except IndexError:
+        print(
+            f"Usage: {sys.argv[0]} <input_pipe_path> <output_pipe_path> <hostname> <role>"
+        )
+        sys.exit(1)
+
+    loop = asyncio.new_event_loop()
+    loop.create_task(main(input_pipe_path, output_pipe_path, hostname, role))
+
+    signal.signal(
+        signal.SIGINT, lambda s, f: shutdown(input_pipe_path, output_pipe_path)
+    )
+
+    loop.run_forever()

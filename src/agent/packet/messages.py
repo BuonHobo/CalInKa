@@ -1,12 +1,12 @@
 from __future__ import annotations
 
+import sys
 import os
 from abc import ABC, abstractmethod
 
 from marshmallow import post_load, fields, Schema, pre_load
 
-from agent.packet.Role import Role
-from agent.packet.Sender import SenderSchema, Sender
+from agent.packet.Sender import SenderSchema, Sender, Role
 
 
 class IMessage(ABC):
@@ -21,7 +21,9 @@ class IMessage(ABC):
 
     @classmethod
     def from_json(cls, data: str) -> IMessage:
-        return cls.schema().loads(data)
+        res = cls.schema().loads(data)
+        assert isinstance(res, IMessage)
+        return res
 
 
 class IMessageSchema(Schema):
@@ -51,8 +53,8 @@ class PokeSchema(IMessageSchema):
 
 class Packet(IMessage):
     sender = Sender(
-        os.environ.get("HOSTNAME", "daemon"),
-        Role(os.environ.get("DAEMON_ROLE", "AGENT")),
+        sys.argv[3],
+        Role(sys.argv[4].upper()),
     )
 
     def __init__(self, src: Sender, dst: str, kind: str, message: IMessage):
@@ -60,6 +62,9 @@ class Packet(IMessage):
         self.dst = dst
         self.kind = kind
         self.message = message
+
+    def reply(self, content: IMessage):
+        return Packet.from_message(content, self.src.name)
 
     @staticmethod
     def from_message(message: IMessage, destination: str):
@@ -87,9 +92,11 @@ class PacketSchema(IMessageSchema):
         self.context["kind"] = data.get("kind")
         return data
 
-class InvalidPacket(IMessage):
-    def __init__(self, packet:str):
+
+class InvalidPayload(IMessage):
+    def __init__(self, packet: str):
         self.packet = packet
 
-class InvalidPacketSchema(IMessageSchema):
+
+class InvalidPayloadSchema(IMessageSchema):
     packet = fields.Str(required=True)

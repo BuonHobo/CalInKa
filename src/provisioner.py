@@ -5,21 +5,21 @@ from Kathara.manager.Kathara import Kathara
 import threading
 
 
-class MachineConnection:
-    def __init__(self, machine: Machine):
-        self.machine = machine
+# class MachineConnection:
+#     def __init__(self, machine: Machine):
+#         self.machine = machine
 
 
-class Provisioner:
-    def __init__(self, lab: Lab):
-        self.connections: dict[str, MachineConnection] = {}
-        self.lab = lab
+# class Provisioner:
+#     def __init__(self, lab: Lab):
+#         self.connections: dict[str, MachineConnection] = {}
+#         self.lab = lab
 
-    def deploy(self):
-        pass
+#     def deploy(self):
+#         pass
 
-    def new_device(self):
-        pass
+#     def new_device(self):
+#         pass
 
 
 def main():
@@ -71,7 +71,7 @@ def main():
 
     Kathara.get_instance().exec(
         machine_name="red",
-        command="bash -c 'python3 /src/agent.py < /agent/in > /agent/out &'",
+        command="bash -c 'python3 /src/agent.py /pipe/in /pipe/out red agent &'",
         lab=lab,
         wait=True,
     )
@@ -79,13 +79,13 @@ def main():
     print("started tailing", flush=True)
     out = Kathara.get_instance().exec(
         machine_name="red",
-        command="cat /agent/out",
+        command="bash -c 'while true; do cat /pipe/out; done'",
         lab=lab,
         stream=True,
     )
 
-    p = '{"src": {"name": "desktop", "role": "AGENT"}, "dst": "gee", "kind": "Poke", "message": {"num": 3}}'
-    s = f"bash -c 'cat <<EOF > /agent/in\n{p}\nEOF\n'"
+    p = '{"src": {"name": "provisioner", "role": "PROVISIONER"}, "dst": "red", "kind": "Poke", "message": {"num": 1}}'
+    s = f"bash -c 'cat <<EOF > /pipe/in\n{p}\nEOF\n'"
 
     Kathara.get_instance().exec(
         "red",
@@ -97,6 +97,8 @@ def main():
 
     for a, _ in out:
         print("out", a, flush=True)
+
+    Kathara.get_instance().connect_tty("red", lab=lab)
 
 
 if __name__ == "__main__":
