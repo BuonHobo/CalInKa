@@ -2,6 +2,7 @@ from agent.socket.PipeWriter import PipeWriter
 from agent.dispatch.Dispatcher import Dispatcher
 from agent.socket.PipeReadProtocol import PipeReadProtocol
 from agent.packet.messages import Poke, Packet
+from agent.config.Settings import Settings
 
 import asyncio
 from pathlib import Path
@@ -17,10 +18,10 @@ async def return_poke(packet: Packet, dispatcher: Dispatcher):
     await dispatcher.send(packet.reply(poke))
 
 
-async def main(input_pipe_path: Path, output_pipe_path: Path, hostname: str, role: str):
+async def main():
 
-    dispatcher = Dispatcher(PipeWriter(output_pipe_path))
-    pipeReader = PipeReadProtocol(dispatcher, input_pipe_path)
+    dispatcher = Dispatcher(PipeWriter(Settings().output_pipe_path))
+    pipeReader = PipeReadProtocol(dispatcher, Settings().input_pipe_path)
     await dispatcher.register(Poke, return_poke)
     pipeReader.listen()
 
@@ -34,23 +35,12 @@ def shutdown(input_pipe_path: Path, output_pipe_path: Path):
 
 
 if __name__ == "__main__":
-
-    try:
-        input_pipe_path = Path(sys.argv[1])
-        output_pipe_path = Path(sys.argv[2])
-        hostname = sys.argv[3]
-        role = sys.argv[4]
-    except IndexError:
-        print(
-            f"Usage: {sys.argv[0]} <input_pipe_path> <output_pipe_path> <hostname> <role>"
-        )
-        sys.exit(1)
-
     loop = asyncio.new_event_loop()
-    loop.create_task(main(input_pipe_path, output_pipe_path, hostname, role))
+    loop.create_task(main())
 
     signal.signal(
-        signal.SIGINT, lambda s, f: shutdown(input_pipe_path, output_pipe_path)
+        signal.SIGINT,
+        lambda s, f: shutdown(Settings().input_pipe_path, Settings().output_pipe_path),
     )
 
     loop.run_forever()

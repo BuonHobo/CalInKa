@@ -6,6 +6,7 @@ from abc import ABC, abstractmethod
 
 from marshmallow import post_load, fields, Schema, pre_load
 
+from agent.config.Settings import Settings
 from agent.packet.Sender import SenderSchema, Sender, Role
 
 
@@ -53,8 +54,8 @@ class PokeSchema(IMessageSchema):
 
 class Packet(IMessage):
     sender = Sender(
-        sys.argv[3],
-        Role(sys.argv[4].upper()),
+        Settings().hostname,
+        Settings().role,
     )
 
     def __init__(self, src: Sender, dst: str, kind: str, message: IMessage):
