@@ -1,5 +1,7 @@
 import asyncio
-from typing import Any, Generator
+from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures.thread import ThreadPoolExecutor
+from typing import Any, AsyncGenerator, Generator, Tuple
 from common.dispatch.IPacketLauncher import IPacketLauncher
 from common.packet.Sender import Role, Sender
 from common.packet.messages import Packet, IMessage
@@ -21,9 +23,6 @@ class Provisioner(IPacketLauncher):
 
     def add_machine(self, machine: Machine, role: Role):
         self.__connections[machine.name] = MachineConnection(machine, role)
-
-    def get_output(self, machine_name: str) -> Generator[Packet, Any, None]:
-        return self.__connections[machine_name].recv()
 
     def deploy(self):
         print("Remember that all Calinka devices must support the calinka agent.")

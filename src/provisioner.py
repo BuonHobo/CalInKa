@@ -13,19 +13,25 @@ import asyncio
 
 
 async def handle_poke(packet: Packet, launcher: IPacketLauncher):
-    poke = packet.message
-    assert isinstance(poke, Poke)
-    poke.num += 1
-    p = Packet.from_message(poke, Settings.sender, packet.src.name)
-    print(p.to_json())
+    # poke = packet.message
+    # assert isinstance(poke, Poke)
+    # poke.num += 1
+    # p = Packet.from_message(poke, Settings.sender, packet.src.name)
+    print("got poke")
 
 
 async def main(p: Provisioner):
 
     d = Dispatcher(p)
     r = Router(d)
+    d.register(Poke, handle_poke)
 
     await p.start_routing(r)
+    await p.send_message("red", Poke(0))
+    await p.send_message("red", Poke(0))
+    await p.send_message("red", Poke(0))
+    await p.send_message("blue", Poke(0))
+    await p.send_message("blue", Poke(0))
     await p.send(
         Packet.from_message(Poke(0), Sender("blue", Role.AGENT), "red")
     )  # {"src": {"name": "blue", "role": "AGENT"}, "dst": "red", "kind": "Poke", "message": {"num": 0}}
