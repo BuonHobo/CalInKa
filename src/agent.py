@@ -28,7 +28,7 @@ async def main():
     pipeReader = PipeReadProtocol(dispatcher, Settings().input_pipe_path)
     dispatcher.register(Poke, return_poke)
     asyncio.get_event_loop().call_soon(pipeReader.listen)
-    print(common_settings.Settings.check_phrase)
+    print(common_settings.Settings.check_phrase, flush=True)
 
 
 def shutdown(input_pipe_path: Path, output_pipe_path: Path):

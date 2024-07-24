@@ -30,7 +30,7 @@ class MachineConnection(IPacketLauncher):
 
         log = Kathara.get_instance().exec(
             machine_name=self.__machine.name,
-            command=f"bash -c '{Settings.calinka_agent_command} {Settings.pipe_in_path} {Settings.pipe_out_path} {self.__machine.name} {self.__role.name}'",
+            command=f"{Settings.calinka_agent_command} {Settings.pipe_in_path} {Settings.pipe_out_path} {self.__machine.name} {self.__role.name}",
             lab=self.__machine.lab,
             wait=True,
             stream=True,
@@ -40,6 +40,7 @@ class MachineConnection(IPacketLauncher):
             Generator[Tuple[str | None, str | None], None, None]
         ):
             for stdout, stderr in log:  # type:ignore
+                print(stdout, stderr)
                 out, err = None, None
                 if stdout:
                     out = stdout.decode()  # type:ignore
