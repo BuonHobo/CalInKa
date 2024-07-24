@@ -1,25 +1,105 @@
-from typing import Iterable
-from Kathara.model.Machine import Machine
+from typing import Any, Generator
 from Kathara.model.Lab import Lab
+from Kathara.model.Machine import Machine
 from Kathara.manager.Kathara import Kathara
-import threading
+
+from common.config.Settings import Settings
+from common.packet.Sender import Role, Sender
+from common.packet.messages import IMessage, Packet, Poke
 
 
 class MachineConnection:
-    def __init__(self, machine: Machine):
-        self.machine = machine
+
+    pipe_in_path = "/pipe/in"
+    pipe_out_path = "/pipe/out"
+    calinka_agent_command = "python3 /calinka/agent.py"
+
+    def __init__(self, machine: Machine, role: Role):
+        self.__output = None
+        self.__machine = machine
+        self.__role = role
+
+    def connect(self):
+        self.check_machine()
+
+        Kathara.get_instance().exec(
+            machine_name=self.__machine.name,
+            command=f"bash -c 'python3 /calinka/agent.py /pipe/in /pipe/out {self.__machine} {self.__role} &'",
+            lab=self.__machine.lab,
+        )
+
+        output = Kathara.get_instance().exec(
+            machine_name=self.__machine.name,
+            command=f"bash -c 'while true; do cat /pipe/out; done'",
+            lab=self.__machine.lab,
+            stream=True,
+        )
+
+        def __output():
+            for stdout, _ in output:  # type: ignore
+                if stdout:
+                    yield stdout
+
+        self.__output = __output()
+
+    def check_machine(self):
+        try:
+            stdout, _, _ = Kathara.get_instance().exec(
+                self.__machine.name,
+                f"{self.calinka_agent_command} --check",
+                lab=self.__machine.lab,
+                wait=True,
+                stream=False,
+            )
+        except Exception as e:
+            e.add_note("Did you forget to deploy the lab?")
+            raise e
+
+        assert isinstance(stdout, bytes)
+        if stdout.decode().strip() != Settings.check_phrase:
+            raise ValueError(
+                f"Machine: '{self.__machine.name}' running on image '{self.__machine.get_image()}' does not support Calinka"
+            )
+
+    def output(self) -> Generator[Packet, Any, None]:
+        if self.__output is None:
+            raise Exception("The Provisioner was not deployed yet.")
+        for out in self.__output:
+            assert isinstance(out, bytes)
+            res = Packet.from_json(out.decode())
+            assert isinstance(res, Packet)
+            yield res
+
+    def send_message(self, message: IMessage, sender: Sender):
+        p = Packet.from_message(message, sender, self.__machine.name)
+
+        Kathara.get_instance().exec(
+            self.__machine.name,
+            f"bash -c 'cat <<EOF >{self.pipe_in_path}\n{p.to_json}\nEOF\n'",
+            lab=self.__machine.lab,
+        )
 
 
 class Provisioner:
+
+    sender = Sender("provisioner", Role.PROVISIONER)
+
     def __init__(self, lab: Lab):
-        self.connections: dict[str, MachineConnection] = {}
-        self.lab = lab
+        self.__connections: dict[str, MachineConnection] = {}
+        self.__lab = lab
+
+    def add_machine(self, machine: Machine, role: Role):
+        self.__connections[machine.name] = MachineConnection(machine, role)
+
+    def get_output(self, machine_name: str):
+        return self.__connections[machine_name].output()
 
     def deploy(self):
-        pass
+        for connection in self.__connections.values():
+            connection.connect()
 
-    def new_device(self):
-        pass
+    def send_message(self, machine_name: str, message: IMessage):
+        self.__connections[machine_name].send_message(message, self.sender)
 
 
 def main():
@@ -36,8 +116,6 @@ def main():
     controller = lab.new_machine(
         "controller",
         image="ghcr.io/buonhobo/agent:latest",
-        bridged=True,
-        ports=["8888:8888"],
     )
 
     lab.connect_machine_to_link(red.name, "A")
@@ -65,39 +143,15 @@ def main():
         dst_path="controller.startup",
     )
 
+    p = Provisioner(lab)
+    p.add_machine(red, Role.AGENT)
+    p.add_machine(blue, Role.AGENT)
+    p.add_machine(controller, Role.CONTROLLER)
     Kathara.get_instance().deploy_lab(lab)
-
-    Kathara.get_instance().exec(
-        machine_name="red",
-        command="bash -c 'python3 /calinka/agent.py /pipe/in /pipe/out red agent &'",
-        lab=lab,
-        wait=True,
-    )
-
-    print("started tailing", flush=True)
-    out = Kathara.get_instance().exec(
-        machine_name="red",
-        command="bash -c 'while true; do cat /pipe/out; done'",
-        lab=lab,
-        stream=True,
-    )
-
-    p = '{"src": {"name": "provisioner", "role": "PROVISIONER"}, "dst": "red", "kind": "Poke", "message": {"num": 1}}'
-    s = f"bash -c 'cat <<EOF > /pipe/in\n{p}\nEOF\n'"
-
-    Kathara.get_instance().exec(
-        "red",
-        s,
-        None,
-        None,
-        lab,
-    )
-
-    for a, _ in out:
-        if a:
-            print(a, flush=True)
-
-    Kathara.get_instance().connect_tty("red", lab=lab)
+    p.deploy()
+    p.send_message("red", Poke(0))
+    for o in p.get_output("red"):
+        print(o.to_json())
 
 
 if __name__ == "__main__":
