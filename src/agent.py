@@ -17,6 +17,7 @@ async def return_poke(packet: Packet, launcher: IPacketLauncher):
     assert isinstance(poke, Poke)
     poke.num += 1
     p = Packet.from_message(poke, Settings().sender, packet.src.name)
+    await asyncio.sleep(2)
     await launcher.send(p)
 
 
