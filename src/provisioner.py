@@ -1,4 +1,4 @@
-from typing import Any, Generator
+from typing import Any, Callable, Generator
 from Kathara.model.Lab import Lab
 from Kathara.model.Machine import Machine
 from Kathara.manager.Kathara import Kathara
@@ -15,7 +15,7 @@ class MachineConnection:
     calinka_agent_command = "python3 /calinka/agent.py"
 
     def __init__(self, machine: Machine, role: Role):
-        self.__output = None
+        self.output: None | Callable[[], Generator[Packet, Any, None]] = None
         self.__machine = machine
         self.__role = role
 
@@ -24,7 +24,7 @@ class MachineConnection:
 
         Kathara.get_instance().exec(
             machine_name=self.__machine.name,
-            command=f"bash -c 'python3 /calinka/agent.py /pipe/in /pipe/out {self.__machine} {self.__role} &'",
+            command=f"bash -c 'python3 /calinka/agent.py /pipe/in /pipe/out {self.__machine.name} {self.__role.name} &'",
             lab=self.__machine.lab,
         )
 
@@ -35,12 +35,15 @@ class MachineConnection:
             stream=True,
         )
 
-        def __output():
+        def __output_generator():
             for stdout, _ in output:  # type: ignore
                 if stdout:
-                    yield stdout
+                    assert isinstance(stdout, bytes)
+                    res = Packet.from_json(stdout.decode())
+                    assert isinstance(res, Packet)
+                    yield res
 
-        self.__output = __output()
+        self.output = __output_generator
 
     def check_machine(self):
         try:
@@ -61,21 +64,12 @@ class MachineConnection:
                 f"Machine: '{self.__machine.name}' running on image '{self.__machine.get_image()}' does not support Calinka"
             )
 
-    def output(self) -> Generator[Packet, Any, None]:
-        if self.__output is None:
-            raise Exception("The Provisioner was not deployed yet.")
-        for out in self.__output:
-            assert isinstance(out, bytes)
-            res = Packet.from_json(out.decode())
-            assert isinstance(res, Packet)
-            yield res
-
     def send_message(self, message: IMessage, sender: Sender):
         p = Packet.from_message(message, sender, self.__machine.name)
 
         Kathara.get_instance().exec(
             self.__machine.name,
-            f"bash -c 'cat <<EOF >{self.pipe_in_path}\n{p.to_json}\nEOF\n'",
+            f"bash -c 'cat <<EOF > {self.pipe_in_path}\n{p.to_json()}\nEOF\n'",
             lab=self.__machine.lab,
         )
 
