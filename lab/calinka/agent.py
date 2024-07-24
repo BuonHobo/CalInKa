@@ -27,7 +27,7 @@ async def main():
     dispatcher = Dispatcher(PipeWriter(Settings().output_pipe_path))
     pipeReader = PipeReadProtocol(dispatcher, Settings().input_pipe_path)
     dispatcher.register(Poke, return_poke)
-    pipeReader.listen()
+    asyncio.get_event_loop().create_task(pipeReader.listen())
     print(common_settings.Settings.check_phrase)
 
 

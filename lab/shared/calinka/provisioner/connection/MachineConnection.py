@@ -33,7 +33,7 @@ class MachineConnection(IPacketLauncher):
 
         log = Kathara.get_instance().exec(
             machine_name=self.__machine.name,
-            command=f"bash -c 'echo ciao && {self.calinka_agent_command} {self.pipe_in_path} {self.pipe_out_path} {self.__machine.name} {self.__role.name}'",
+            command=f"bash -c '{self.calinka_agent_command} {self.pipe_in_path} {self.pipe_out_path} {self.__machine.name} {self.__role.name}'",
             lab=self.__machine.lab,
             wait=True,
             stream=True,
