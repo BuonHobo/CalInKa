@@ -1,6 +1,7 @@
 from agent.socket.PipeWriter import PipeWriter
 from common.dispatch.Dispatcher import Dispatcher
 from agent.socket.PipeReadProtocol import PipeReadProtocol
+from common.dispatch.IPacketLauncher import IPacketLauncher
 from common.packet.messages import Poke, Packet
 from agent.config.Settings import Settings
 
@@ -11,18 +12,19 @@ import os
 import signal
 
 
-async def return_poke(packet: Packet, dispatcher: Dispatcher):
+async def return_poke(packet: Packet, launcher: IPacketLauncher):
     poke = packet.message
     assert isinstance(poke, Poke)
     poke.num += 1
-    await dispatcher.send(packet.reply(poke, Settings().sender))
+    p = Packet.from_message(poke, Settings().sender, packet.src.name)
+    await launcher.send(p)
 
 
 async def main():
 
     dispatcher = Dispatcher(PipeWriter(Settings().output_pipe_path))
     pipeReader = PipeReadProtocol(dispatcher, Settings().input_pipe_path)
-    await dispatcher.register(Poke, return_poke)
+    dispatcher.register(Poke, return_poke)
     pipeReader.listen()
 
 

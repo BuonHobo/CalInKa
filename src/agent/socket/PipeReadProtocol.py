@@ -2,6 +2,7 @@ import asyncio
 from io import TextIOWrapper
 from pathlib import Path
 from common.dispatch.Dispatcher import Dispatcher
+from common.packet.messages import Packet
 import os
 
 
@@ -41,11 +42,21 @@ class PipeReadProtocol(asyncio.Protocol):
             if self.__is_packet:
                 self.__buffer += c
                 if self.__depth == 0:
-                    asyncio.get_event_loop().create_task(
-                        self.__dispatcher.handle(self.__buffer)
-                    )
+                    if packet := self.parse_packet(self.__buffer):
+                        asyncio.get_event_loop().create_task(
+                            self.__dispatcher.dispatch(packet)
+                        )
                     self.__buffer = ""
                     self.__is_packet = False
+
+    def parse_packet(self, data: str):
+        try:
+            packet = Packet.from_json(data)
+            assert isinstance(packet, Packet)
+        except Exception as e:
+            print(f"Couldn't parse packet {data}: {e}")
+            return
+        return packet
 
     def connection_lost(self, exc):
         self.listen()

@@ -3,19 +3,8 @@ from pathlib import Path
 from typing import Any
 
 from common.packet.Sender import Role
+from common.utils.Singleton import Singleton
 
 
-class Settings(object):
-
+class Settings(Singleton):
     check_phrase = "Calinka is available."
-
-    def __new__(cls, *args, **kwds):
-        it = cls.__dict__.get("__it__")
-        if it is not None:
-            return it
-        cls.__it__ = it = object.__new__(cls)
-        it.init(*args, **kwds)
-        return it
-
-    def init(self, *args, **kwds):
-        pass

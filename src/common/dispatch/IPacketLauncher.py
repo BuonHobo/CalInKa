@@ -5,5 +5,5 @@ from common.packet.messages import Packet
 
 class IPacketLauncher(ABC):
     @abstractmethod
-    def send(self, packet: Packet):
+    async def send(self, packet: Packet):
         pass

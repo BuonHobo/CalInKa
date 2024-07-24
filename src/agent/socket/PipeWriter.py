@@ -15,7 +15,7 @@ class PipeWriter(IPacketLauncher):
 
         self.__output_pipe_path = output_pipe_path
 
-    def send(self, packet: Packet):
+    async def send(self, packet: Packet):
         self.__output_pipe_path.write_text(
             packet.to_json(), encoding="utf-8", newline=""
         )

@@ -59,9 +59,6 @@ class Packet(IMessage):
         self.kind = kind
         self.message = message
 
-    def reply(self, content: IMessage, sender: Sender):
-        return Packet.from_message(content, sender, self.src.name)
-
     @staticmethod
     def from_message(message: IMessage, sender: Sender, destination: str):
         return Packet(sender, destination, message.__class__.__name__, message)

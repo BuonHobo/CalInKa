@@ -14,7 +14,7 @@ class MachineConnection(IPacketLauncher):
     calinka_agent_command = "python3 /calinka/agent.py"
 
     def __init__(self, machine: Machine, role: Role):
-        self.output: None | Callable[[], Generator[Packet, Any, None]] = None
+        self.__output: None | Callable[[], Generator[Packet, Any, None]] = None
         self.__machine = machine
         self.__role = role
 
@@ -23,13 +23,13 @@ class MachineConnection(IPacketLauncher):
 
         Kathara.get_instance().exec(
             machine_name=self.__machine.name,
-            command=f"bash -c 'python3 /calinka/agent.py /pipe/in /pipe/out {self.__machine.name} {self.__role.name} &'",
+            command=f"bash -c '{self.calinka_agent_command} {self.pipe_in_path} {self.pipe_out_path} {self.__machine.name} {self.__role.name} &'",
             lab=self.__machine.lab,
         )
 
         output = Kathara.get_instance().exec(
             machine_name=self.__machine.name,
-            command=f"bash -c 'while true; do cat /pipe/out; done'",
+            command=f"bash -c 'while true; do cat {self.pipe_out_path}; done'",
             lab=self.__machine.lab,
             stream=True,
         )
@@ -42,7 +42,12 @@ class MachineConnection(IPacketLauncher):
                     assert isinstance(res, Packet)
                     yield res
 
-        self.output = __output_generator
+        self.__output = __output_generator
+
+    def output(self):
+        assert self.__output is not None
+        for p in self.__output():
+            yield p
 
     def check_machine(self):
         try:
@@ -63,11 +68,8 @@ class MachineConnection(IPacketLauncher):
                 f"Machine: '{self.__machine.name}' running on image '{self.__machine.get_image()}' does not support Calinka"
             )
 
-    def send_message(self, message: IMessage, sender: Sender):
-        p = Packet.from_message(message, sender, self.__machine.name)
-        self.send(p)
-
-    def send(self, packet: Packet):
+    async def send(self, packet: Packet):
+        print("sending", packet)
         Kathara.get_instance().exec(
             self.__machine.name,
             f"bash -c 'cat <<EOF > {self.pipe_in_path}\n{packet.to_json()}\nEOF\n'",
