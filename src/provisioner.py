@@ -32,7 +32,6 @@ async def main(p: Provisioner):
 if __name__ == "__main__":
 
     lab = LabParser().parse("./lab")
-    lab.copy_directory_from_path("src/", "calinka")
     p = Provisioner(lab)
     p.add_machine(lab.get_machine("red"), Role.AGENT)
     p.add_machine(lab.get_machine("blue"), Role.AGENT)

@@ -18,7 +18,7 @@ class PipeReadProtocol(asyncio.Protocol):
         self.__is_packet = False
         self.__dispatcher = dispatcher
 
-    async def listen(self):
+    def listen(self):
         loop = asyncio.get_event_loop()
         loop.create_task(
             loop.connect_read_pipe(
