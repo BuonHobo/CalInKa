@@ -3,6 +3,7 @@ from io import TextIOWrapper
 from pathlib import Path
 from common.dispatch.Dispatcher import Dispatcher
 from common.packet.messages import Packet
+from common.config import Settings as common_settings
 import os
 
 
@@ -11,6 +12,8 @@ class PipeReadProtocol(asyncio.Protocol):
         input_pipe_path.parent.mkdir(parents=True, exist_ok=True, mode=0o600)
         input_pipe_path.unlink(missing_ok=True)
         os.mkfifo(input_pipe_path, 0o600)
+
+        print(common_settings.Settings.check_phrase, flush=True)
 
         self.__input_pipe_path = input_pipe_path
         self.__buffer = ""

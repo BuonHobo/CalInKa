@@ -26,7 +26,9 @@ async def main(p: Provisioner):
     r = Router(d)
 
     await p.start_routing(r)
-    await p.send(Packet.from_message(Poke(0), Sender("blue", Role.AGENT), "red"))
+    await p.send(
+        Packet.from_message(Poke(0), Sender("blue", Role.AGENT), "red")
+    )  # {"src": {"name": "blue", "role": "AGENT"}, "dst": "red", "kind": "Poke", "message": {"num": 0}}
 
 
 if __name__ == "__main__":

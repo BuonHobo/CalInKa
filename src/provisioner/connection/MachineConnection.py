@@ -40,12 +40,11 @@ class MachineConnection(IPacketLauncher):
             Generator[Tuple[str | None, str | None], None, None]
         ):
             for stdout, stderr in log:  # type:ignore
-                print(stdout, stderr)
                 out, err = None, None
                 if stdout:
-                    out = stdout.decode()  # type:ignore
+                    out = stdout.decode().strip()  # type:ignore
                 if stderr:
-                    err = stderr.decode()  # type:ignore
+                    err = stderr.decode().strip()  # type:ignore
                 yield out, err
 
         self.__output = __output_generator

@@ -18,7 +18,6 @@ async def return_poke(packet: Packet, launcher: IPacketLauncher):
     assert isinstance(poke, Poke)
     poke.num += 1
     p = Packet.from_message(poke, Settings().sender, packet.src.name)
-    await asyncio.sleep(2)
     await launcher.send(p)
 
 
@@ -27,8 +26,7 @@ async def main():
     dispatcher = Dispatcher(PipeWriter(Settings().output_pipe_path))
     pipeReader = PipeReadProtocol(dispatcher, Settings().input_pipe_path)
     dispatcher.register(Poke, return_poke)
-    asyncio.get_event_loop().call_soon(pipeReader.listen)
-    print(common_settings.Settings.check_phrase, flush=True)
+    pipeReader.listen()
 
 
 def shutdown(input_pipe_path: Path, output_pipe_path: Path):
