@@ -14,10 +14,9 @@ class MachineListener:
     ):
         self.__connection = machine_connection
         self.__router = router
-        self.__processPool: ProcessPoolExecutor = pool
 
     async def listen(self):
-
-        while True:
-            packet = await self.__connection.get_packet()
+        packet = await self.__connection.get_packet()
+        if packet:
             asyncio.get_event_loop().create_task(self.__router.route(packet))
+        asyncio.get_event_loop().create_task(self.listen())

@@ -23,6 +23,3 @@ class Dispatcher:
         handler: Callable[[Packet, IPacketLauncher], Awaitable],
     ):
         self.__handlers[message_type].append(handler)
-
-    async def send(self, packet: Packet):
-        await self.__packetLauncher.send(packet)

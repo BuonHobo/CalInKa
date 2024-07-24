@@ -8,6 +8,7 @@ import common.config.Settings as common_settings
 
 class Settings(common_settings.Settings):
 
+    timeout = 0.1
     sender = Sender("provisioner", Role.PROVISIONER)
     pipe_in_path = "/pipe/in"
     pipe_out_path = "/pipe/out"

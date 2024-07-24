@@ -1,4 +1,6 @@
 from concurrent.futures import ProcessPoolExecutor
+
+from marshmallow import pprint
 from common.dispatch.IPacketLauncher import IPacketLauncher
 from Kathara.model.Machine import Machine
 from Kathara.manager.Kathara import Kathara
@@ -47,20 +49,25 @@ class MachineConnection(IPacketLauncher):
                 print(f"'{self.__machine.name}' showed an error: {err}")
 
     async def send(self, packet: Packet):
-        print("sending", packet.to_json())
+        print("sent", packet.to_json())
         Kathara.get_instance().exec(
             self.__machine.name,
             f"bash -c 'cat <<EOF > {Settings.pipe_in_path}\n{packet.to_json()}\nEOF\n'",
             lab=self.__machine.lab,
         )
 
-    async def get_packet(self) -> Packet:
+    async def get_packet(self) -> Packet | None:
 
         o, _, _ = Kathara.get_instance().exec(
             machine_name=self.__machine.name,
-            command=f"tail {Settings.pipe_out_path}",
+            command=f"timeout {Settings.timeout} cat {Settings.pipe_out_path}",
             lab=self.__machine.lab,
             stream=False,
         )
-        print(o.decode())
-        return Packet.from_json(o.decode())
+
+        if o:
+            assert isinstance(o, bytes)
+            res = Packet.from_json(o.decode())
+            print("received", res.to_json())
+            assert isinstance(res, Packet)
+            return res
