@@ -1,5 +1,5 @@
 from agent.socket.PipeWriter import PipeWriter
-from agent.dispatch.Dispatcher import Dispatcher
+from common.dispatch.Dispatcher import Dispatcher
 from agent.socket.PipeReadProtocol import PipeReadProtocol
 from common.packet.messages import Poke, Packet
 from agent.config.Settings import Settings

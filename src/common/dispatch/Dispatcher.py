@@ -1,13 +1,13 @@
 from collections import defaultdict
 from typing import Awaitable, Callable, Coroutine, Self
+from common.dispatch.IPacketLauncher import IPacketLauncher
 from common.packet.messages import IMessage, Packet
-from agent.socket.PipeWriter import PipeWriter
 
 
 class Dispatcher:
 
-    def __init__(self, pipeWriter: PipeWriter):
-        self.__pipeWriter = pipeWriter
+    def __init__(self, packet_launcher: IPacketLauncher):
+        self.__packetLauncher = packet_launcher
         self.__handlers: defaultdict[
             type[IMessage], list[Callable[[Packet, Self], Awaitable[None]]]
         ] = defaultdict(list)
@@ -31,4 +31,4 @@ class Dispatcher:
         self.__handlers[message_type].append(handler)
 
     async def send(self, packet: Packet):
-        self.__pipeWriter.write(packet.to_json())
+        self.__packetLauncher.send(packet)

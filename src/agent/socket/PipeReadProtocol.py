@@ -1,7 +1,7 @@
 import asyncio
 from io import TextIOWrapper
 from pathlib import Path
-from agent.dispatch.Dispatcher import Dispatcher
+from common.dispatch.Dispatcher import Dispatcher
 import os
 
 

