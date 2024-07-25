@@ -10,7 +10,6 @@ from Kathara.model.Lab import Lab
 from Kathara.model.Machine import Machine
 from common.socket.PipeReadProtocol import PipeReadProtocol
 from provisioner.config.Settings import Settings
-from provisioner.connection.MachineListener import MachineListener
 from provisioner.connection.MachineConnection import MachineConnection
 from common.utils.Singleton import Singleton
 from provisioner.dispatch.Router import Router
