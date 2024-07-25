@@ -47,12 +47,8 @@ class Provisioner(IPacketLauncher):
         os.set_inheritable(read_pipe, True)
         os.set_inheritable(write_pipe, True)
         for connection in self.__connections.values():
-            asyncio.get_event_loop().create_task(connection.listen(write_pipe))
-        asyncio.get_event_loop().create_task(
-            asyncio.get_event_loop().connect_read_pipe(
-                lambda: PipeReadProtocol(router, read_pipe), open(read_pipe, "r")
-            )
-        )
+            asyncio.get_event_loop().create_task(connection.fork_and_listen(write_pipe))
+        PipeReadProtocol(router, read_pipe).listen()
 
     async def send(self, packet: Packet):
         asyncio.get_event_loop().create_task(

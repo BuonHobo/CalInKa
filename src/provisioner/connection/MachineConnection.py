@@ -46,12 +46,13 @@ class MachineConnection(IPacketLauncher):
                 err = stderr.decode().strip()  # type:ignore
                 print(f"'{self.__machine.name}' showed an error: {err}")
 
-    async def listen(self, write_pipe: int):
+    async def fork_and_listen(self, write_pipe: int):
         pid = os.fork()
         if pid <= 0:
             output = Kathara.get_instance().exec(
                 machine_name=self.__machine.name,
                 command=f"bash -c 'while true; do cat {Settings.pipe_out_path}; done'",
+                # command=f"tail -f {Settings.pipe_out_path}",
                 lab=self.__machine.lab,
                 stream=True,
             )
