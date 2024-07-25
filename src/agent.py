@@ -1,6 +1,6 @@
 from agent.socket.PipeWriter import PipeWriter
 from common.dispatch.Dispatcher import Dispatcher
-from agent.socket.PipeReadProtocol import PipeReadProtocol
+from common.socket.PipeReadProtocol import PipeReadProtocol
 from common.dispatch.IPacketLauncher import IPacketLauncher
 from common.packet.messages import Poke, Packet
 from agent.config.Settings import Settings
@@ -24,9 +24,16 @@ async def return_poke(packet: Packet, launcher: IPacketLauncher):
 async def main():
 
     dispatcher = Dispatcher(PipeWriter(Settings().output_pipe_path))
-    pipeReader = PipeReadProtocol(dispatcher, Settings().input_pipe_path)
     dispatcher.register(Poke, return_poke)
+
+    Settings().input_pipe_path.parent.mkdir(parents=True, exist_ok=True, mode=0o600)
+    Settings().input_pipe_path.unlink(missing_ok=True)
+    os.mkfifo(Settings().input_pipe_path, 0o600)
+
+    pipeReader = PipeReadProtocol(dispatcher, Settings().input_pipe_path)
+
     pipeReader.listen()
+    print(common_settings.Settings.check_phrase, flush=True)
 
 
 def shutdown(input_pipe_path: Path, output_pipe_path: Path):

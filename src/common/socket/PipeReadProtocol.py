@@ -8,14 +8,9 @@ import os
 
 
 class PipeReadProtocol(asyncio.Protocol):
-    def __init__(self, dispatcher: Dispatcher, input_pipe_path: Path):
-        input_pipe_path.parent.mkdir(parents=True, exist_ok=True, mode=0o600)
-        input_pipe_path.unlink(missing_ok=True)
-        os.mkfifo(input_pipe_path, 0o600)
+    def __init__(self, dispatcher: Dispatcher, input_pipe: Path | int):
 
-        print(common_settings.Settings.check_phrase, flush=True)
-
-        self.__input_pipe_path = input_pipe_path
+        self.__input_pipe = input_pipe
         self.__buffer = ""
         self.__depth = 0
         self.__is_packet = False
@@ -26,13 +21,12 @@ class PipeReadProtocol(asyncio.Protocol):
         loop.create_task(
             loop.connect_read_pipe(
                 lambda: self,
-                self.__input_pipe_path.open("r"),
+                open(self.__input_pipe, "r"),
             )
         )
 
     def data_received(self, data):
         data = data.decode("utf-8")
-
         for c in data:
             if c == "{":
                 self.__depth += 1

@@ -1,4 +1,5 @@
 from concurrent.futures import ProcessPoolExecutor
+from io import FileIO
 
 from marshmallow import pprint
 from common.dispatch.IPacketLauncher import IPacketLauncher
@@ -11,6 +12,7 @@ import common.config.Settings as common_settings
 from provisioner.config.Settings import Settings
 from typing import Tuple
 import asyncio
+import os
 
 
 class MachineConnection(IPacketLauncher):
@@ -19,7 +21,7 @@ class MachineConnection(IPacketLauncher):
         self.__machine = machine
         self.__role = role
 
-    def connect(self):
+    async def start_agent(self):
 
         print(f"Connecting to '{self.__machine.name}'...")
 
@@ -30,23 +32,35 @@ class MachineConnection(IPacketLauncher):
             wait=True,
             stream=True,
         )
+        asyncio.get_event_loop().create_task(self.wait_for_connection(log))
 
-        def output_generator() -> Generator[Tuple[str | None, str | None], None, None]:
-            for stdout, stderr in log:  # type:ignore
-                out, err = None, None
-                if stdout:
-                    out = stdout.decode().strip()  # type:ignore
-                if stderr:
-                    err = stderr.decode().strip()  # type:ignore
-                yield out, err
-
-        for out, err in output_generator():
-            if out:
+    async def wait_for_connection(self, log):
+        for stdout, stderr in log:
+            out, err = None, None
+            if stdout:
+                out = stdout.decode().strip()  # type:ignore
                 print(f"'{self.__machine.name}' says: {out}")
-                if out.strip() == common_settings.Settings.check_phrase:
+                if out == common_settings.Settings.check_phrase:
                     break
-            if err:
+            if stderr:
+                err = stderr.decode().strip()  # type:ignore
                 print(f"'{self.__machine.name}' showed an error: {err}")
+
+    async def listen(self, write_pipe: int):
+        pid = os.fork()
+        if pid <= 0:
+            output = Kathara.get_instance().exec(
+                machine_name=self.__machine.name,
+                command=f"bash -c 'while true; do cat {Settings.pipe_out_path}; done'",
+                lab=self.__machine.lab,
+                stream=True,
+            )
+            pipe = open(write_pipe, "wb")
+            for o, _ in output:  # type:ignore
+                if o:
+                    pipe.write(o)  # type:ignore
+                    pipe.flush()
+            exit(0)
 
     async def send(self, packet: Packet):
         print("sent", packet.to_json())
@@ -55,19 +69,3 @@ class MachineConnection(IPacketLauncher):
             f"bash -c 'cat <<EOF > {Settings.pipe_in_path}\n{packet.to_json()}\nEOF\n'",
             lab=self.__machine.lab,
         )
-
-    async def get_packet(self) -> Packet | None:
-
-        o, _, _ = Kathara.get_instance().exec(
-            machine_name=self.__machine.name,
-            command=f"timeout {Settings.timeout} cat {Settings.pipe_out_path}",
-            lab=self.__machine.lab,
-            stream=False,
-        )
-
-        if o:
-            assert isinstance(o, bytes)
-            res = Packet.from_json(o.decode())
-            print("received", res.to_json())
-            assert isinstance(res, Packet)
-            return res

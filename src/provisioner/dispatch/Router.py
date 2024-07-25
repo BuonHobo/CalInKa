@@ -5,14 +5,15 @@ from provisioner.config.Settings import Settings
 import asyncio
 
 
-class Router:
+class Router(Dispatcher):
     def __init__(self, dispatcher: Dispatcher, launcher: IPacketLauncher):
         self.__dispatcher = dispatcher
         self.__launcher = launcher
 
-    async def route(self, packet: Packet):
+    async def dispatch(self, packet: Packet):
+        print("received", packet.to_json())
         if packet.dst == Settings.sender.name:
             asyncio.get_event_loop().create_task(self.__dispatcher.dispatch(packet))
             return
         else:
-            await self.__launcher.send(packet)
+            asyncio.get_event_loop().create_task(self.__launcher.send(packet))

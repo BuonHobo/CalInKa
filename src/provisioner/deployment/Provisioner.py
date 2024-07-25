@@ -8,11 +8,13 @@ from common.packet.messages import Packet, IMessage
 from Kathara.manager.Kathara import Kathara
 from Kathara.model.Lab import Lab
 from Kathara.model.Machine import Machine
+from common.socket.PipeReadProtocol import PipeReadProtocol
 from provisioner.config.Settings import Settings
 from provisioner.connection.MachineListener import MachineListener
 from provisioner.connection.MachineConnection import MachineConnection
 from common.utils.Singleton import Singleton
 from provisioner.dispatch.Router import Router
+import os
 
 
 class Provisioner(IPacketLauncher):
@@ -24,23 +26,33 @@ class Provisioner(IPacketLauncher):
     def add_machine(self, machine: Machine, role: Role):
         self.__connections[machine.name] = MachineConnection(machine, role)
 
-    def deploy(self):
+    async def deploy(self):
         print("Remember that all Calinka devices must support the calinka agent.")
         print("Deploying lab...")
         Kathara.get_instance().deploy_lab(self.__lab)
         for connection in self.__connections.values():
-            connection.connect()
+            asyncio.get_event_loop().create_task(connection.start_agent())
 
     async def send_message(self, machine_name: str, message: IMessage):
-        await self.__connections[machine_name].send(
-            Packet.from_message(message, Settings.sender, machine_name)
+        asyncio.get_event_loop().create_task(
+            self.__connections[machine_name].send(
+                Packet.from_message(message, Settings.sender, machine_name)
+            )
         )
 
     async def start_routing(self, router: Router):
+        read_pipe, write_pipe = os.pipe()
+        os.set_inheritable(read_pipe, True)
+        os.set_inheritable(write_pipe, True)
         for connection in self.__connections.values():
-            asyncio.get_event_loop().create_task(
-                MachineListener(connection, router).listen()
+            asyncio.get_event_loop().create_task(connection.listen(write_pipe))
+        asyncio.get_event_loop().create_task(
+            asyncio.get_event_loop().connect_read_pipe(
+                lambda: PipeReadProtocol(router, read_pipe), open(read_pipe, "r")
             )
+        )
 
     async def send(self, packet: Packet):
-        await self.__connections[packet.dst].send(packet)
+        asyncio.get_event_loop().create_task(
+            self.__connections[packet.dst].send(packet)
+        )

@@ -24,6 +24,7 @@ async def handle_poke(packet: Packet, launcher: IPacketLauncher):
 
 async def main(p: Provisioner):
 
+    await p.deploy()
     d = Dispatcher(p)
     r = Router(d, p)
     d.register(Poke, handle_poke)
@@ -40,7 +41,6 @@ if __name__ == "__main__":
     p.add_machine(lab.get_machine("red"), Role.AGENT)
     p.add_machine(lab.get_machine("blue"), Role.AGENT)
     p.add_machine(lab.get_machine("controller"), Role.CONTROLLER)
-    p.deploy()
 
     loop = asyncio.new_event_loop()
     loop.create_task(main(p))
