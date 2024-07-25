@@ -30,8 +30,10 @@ class Provisioner(IPacketLauncher):
         print("Remember that all Calinka devices must support the calinka agent.")
         print("Deploying lab...")
         Kathara.get_instance().deploy_lab(self.__lab)
-        for connection in self.__connections.values():
-            asyncio.get_event_loop().create_task(connection.start_agent())
+
+        await asyncio.gather(
+            *(connection.start_agent() for connection in self.__connections.values())
+        )
 
     async def send_message(self, machine_name: str, message: IMessage):
         asyncio.get_event_loop().create_task(
