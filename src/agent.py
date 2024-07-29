@@ -32,6 +32,8 @@ async def main():
 
     pipeReader = PipeReadProtocol(Dispatcher.get_instance(), Settings().input_pipe_path)
 
+    CommandHandler()
+
     asyncio.get_event_loop().call_soon(pipeReader.listen)
     print(common_settings.Settings.check_phrase, flush=True)
 

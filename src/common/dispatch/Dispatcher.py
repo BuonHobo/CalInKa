@@ -3,13 +3,15 @@ from __future__ import annotations
 import asyncio
 from collections import defaultdict
 from typing import Callable, Coroutine, Self, Optional, Union
+
+from marshmallow.utils import is_instance_or_subclass
 from common.dispatch.SingletonLauncher import SingletonLauncher
 from common.dispatch.IPacketLauncher import IPacketLauncher
 from common.packet.messages import IMessage, Packet
 
 from common.dispatch.IHandler import IHandler
 
-Handler = Callable[[Packet], Coroutine[None, None, None]]
+Handler = Union[IHandler, Callable[[Packet], Coroutine[None, None, None]]]
 
 
 def handler_for(kind: type[IMessage]):
@@ -38,7 +40,7 @@ class Dispatcher(IHandler):
     async def handle(self, packet: Packet):
         if handlers := self.__handlers.get(type(packet.message)):
             for handler in handlers:
-                if isinstance(handler, IHandler):
+                if is_instance_or_subclass(handler, IHandler):
                     await asyncio.get_event_loop().create_task(handler.handle(packet))
                 elif isinstance(handler, Callable):
                     await asyncio.get_event_loop().create_task(handler(packet))

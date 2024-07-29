@@ -39,6 +39,17 @@ class CommandSchema(IMessageSchema):
     cmd = fields.Str(required=True)
 
 
+class CommandResponse(IMessage):
+    def __init__(self, ok: bool, body: str):
+        self.ok = ok
+        self.body: str = body
+
+
+class CommandResponseSchema(IMessageSchema):
+    ok = fields.Boolean(required=True)
+    body = fields.String(required=True)
+
+
 class Poke(IMessage):
     def __init__(self, num: int):
         self.num = num
