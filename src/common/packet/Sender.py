@@ -1,5 +1,6 @@
-from marshmallow import Schema, fields, post_load
 from enum import Enum
+
+from marshmallow import Schema, fields, post_load
 
 
 class Role(Enum):

@@ -1,19 +1,16 @@
 import asyncio
-from concurrent.futures import ProcessPoolExecutor
-from concurrent.futures.thread import ThreadPoolExecutor
-from typing import Any, AsyncGenerator, Generator, Tuple
-from common.dispatch.IPacketLauncher import IPacketLauncher
-from common.packet.Sender import Role, Sender
-from common.packet.messages import Packet, IMessage
+import os
+
 from Kathara.manager.Kathara import Kathara
 from Kathara.model.Lab import Lab
 from Kathara.model.Machine import Machine
-from common.socket.PipeReadProtocol import PipeReadProtocol
-from provisioner.config.Settings import Settings
-from provisioner.connection.MachineConnection import MachineConnection
-from common.utils.Singleton import Singleton
-from provisioner.dispatch.Router import Router
-import os
+from src.common.dispatch.IPacketLauncher import IPacketLauncher
+from src.common.packet.Sender import Role
+from src.common.packet.messages import Packet, IMessage
+from src.common.socket.PipeReadProtocol import PipeReadProtocol
+from src.provisioner.config.Settings import Settings
+from src.provisioner.connection.MachineConnection import MachineConnection
+from src.provisioner.dispatch.Router import Router
 
 
 class Provisioner(IPacketLauncher):
@@ -35,7 +32,7 @@ class Provisioner(IPacketLauncher):
         )
 
     async def send_message(self, machine_name: str, message: IMessage):
-        asyncio.get_event_loop().create_task(
+        await asyncio.get_event_loop().create_task(
             self.__connections[machine_name].send(
                 Packet.from_message(message, Settings.sender, machine_name)
             )
@@ -46,10 +43,10 @@ class Provisioner(IPacketLauncher):
         os.set_inheritable(read_pipe, True)
         os.set_inheritable(write_pipe, True)
         for connection in self.__connections.values():
-            asyncio.get_event_loop().create_task(connection.fork_and_listen(write_pipe))
+            await asyncio.get_event_loop().create_task(connection.fork_and_listen(write_pipe))
         PipeReadProtocol(router, read_pipe).listen()
 
     async def send(self, packet: Packet):
-        asyncio.get_event_loop().create_task(
+        await asyncio.get_event_loop().create_task(
             self.__connections[packet.dst].send(packet)
         )

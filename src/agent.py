@@ -1,16 +1,15 @@
-from agent.socket.PipeWriter import PipeWriter
-from common.dispatch.Dispatcher import Dispatcher
-from common.socket.PipeReadProtocol import PipeReadProtocol
-from common.dispatch.IPacketLauncher import IPacketLauncher
-from common.packet.messages import Poke, Packet
-from agent.config.Settings import Settings
-import common.config.Settings as common_settings
-
 import asyncio
-from pathlib import Path
-import sys
 import os
 import signal
+from pathlib import Path
+
+import src.common.config.Settings as common_settings
+from src.agent.config.Settings import Settings
+from src.agent.socket.PipeWriter import PipeWriter
+from src.common.dispatch.Dispatcher import Dispatcher
+from src.common.dispatch.IPacketLauncher import IPacketLauncher
+from src.common.packet.messages import Poke, Packet
+from src.common.socket.PipeReadProtocol import PipeReadProtocol
 
 
 async def return_poke(packet: Packet, launcher: IPacketLauncher):
@@ -22,7 +21,6 @@ async def return_poke(packet: Packet, launcher: IPacketLauncher):
 
 
 async def main():
-
     dispatcher = Dispatcher(PipeWriter(Settings().output_pipe_path))
     dispatcher.register(Poke, return_poke)
 

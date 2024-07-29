@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from common.packet.messages import Packet
+from src.common.packet.messages import Packet
 
 
 class IPacketLauncher(ABC):

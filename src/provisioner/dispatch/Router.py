@@ -1,19 +1,21 @@
-from common.dispatch.Dispatcher import Dispatcher
-from common.packet.messages import Packet
-from common.dispatch.IPacketLauncher import IPacketLauncher
-from provisioner.config.Settings import Settings
 import asyncio
 
+from src.common.dispatch.Dispatcher import Dispatcher
+from src.common.dispatch.IHandler import IHandler
+from src.common.dispatch.IPacketLauncher import IPacketLauncher
+from src.common.packet.messages import Packet
+from src.provisioner.config.Settings import Settings
 
-class Router(Dispatcher):
+
+class Router(IHandler):
     def __init__(self, dispatcher: Dispatcher, launcher: IPacketLauncher):
         self.__dispatcher = dispatcher
         self.__launcher = launcher
 
-    async def dispatch(self, packet: Packet):
+    async def handle(self, packet: Packet):
         print("received", packet.to_json())
         if packet.dst == Settings.sender.name:
-            asyncio.get_event_loop().create_task(self.__dispatcher.dispatch(packet))
+            await asyncio.get_event_loop().create_task(self.__dispatcher.handle(packet))
             return
         else:
-            asyncio.get_event_loop().create_task(self.__launcher.send(packet))
+            await asyncio.get_event_loop().create_task(self.__launcher.send(packet))

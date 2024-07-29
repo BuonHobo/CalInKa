@@ -1,13 +1,9 @@
-import sys
-from pathlib import Path
-
-from common.packet.Sender import Role
-from common.packet.Sender import Sender
-import common.config.Settings as common_settings
+import src.common.config.Settings as common_settings
+from src.common.packet.Sender import Role
+from src.common.packet.Sender import Sender
 
 
 class Settings(common_settings.Settings):
-
     sender = Sender("provisioner", Role.PROVISIONER)
     pipe_in_path = "/pipe/in"
     pipe_out_path = "/pipe/out"

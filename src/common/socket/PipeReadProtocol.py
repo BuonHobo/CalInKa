@@ -1,10 +1,8 @@
 import asyncio
-from io import TextIOWrapper
 from pathlib import Path
-from common.dispatch.Dispatcher import Dispatcher
-from common.packet.messages import Packet
-from common.config import Settings as common_settings
-import os
+
+from src.common.dispatch.Dispatcher import Dispatcher
+from src.common.packet.messages import Packet
 
 
 class PipeReadProtocol(asyncio.Protocol):
@@ -41,7 +39,7 @@ class PipeReadProtocol(asyncio.Protocol):
                 if self.__depth == 0:
                     if packet := self.parse_packet(self.__buffer):
                         asyncio.get_event_loop().create_task(
-                            self.__dispatcher.dispatch(packet)
+                            self.__dispatcher.handle(packet)
                         )
                     self.__buffer = ""
                     self.__is_packet = False
