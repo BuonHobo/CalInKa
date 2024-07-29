@@ -3,12 +3,14 @@ import os
 import signal
 from pathlib import Path
 
+from agent.executor.CommandHandler import CommandHandler
 import common.config.Settings as common_settings
 from agent.config.Settings import Settings
 from agent.socket.PipeWriter import PipeWriter
+from common.dispatch.SingletonLauncher import SingletonLauncher
 from common.dispatch.Dispatcher import Dispatcher
 from common.dispatch.IPacketLauncher import IPacketLauncher
-from common.packet.messages import Poke, Packet
+from common.packet.messages import Command, Poke, Packet
 from common.socket.PipeReadProtocol import PipeReadProtocol
 
 
@@ -21,8 +23,10 @@ async def return_poke(packet: Packet, launcher: IPacketLauncher):
 
 
 async def main():
-    dispatcher = Dispatcher(PipeWriter(Settings().output_pipe_path))
+    SingletonLauncher(PipeWriter(Settings().output_pipe_path))
+    dispatcher = Dispatcher()
     dispatcher.register(Poke, return_poke)
+    dispatcher.register(Command, CommandHandler())
 
     Settings().input_pipe_path.parent.mkdir(parents=True, exist_ok=True, mode=0o600)
     Settings().input_pipe_path.unlink(missing_ok=True)
