@@ -1,9 +1,9 @@
 import sys
 from pathlib import Path
 
-import src.common.config.Settings as common_settings
-from src.common.packet.Sender import Role
-from src.common.packet.Sender import Sender
+import common.config.Settings as common_settings
+from common.packet.Sender import Role
+from common.packet.Sender import Sender
 
 
 class Settings(common_settings.Settings):

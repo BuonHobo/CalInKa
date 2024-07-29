@@ -1,13 +1,13 @@
 import asyncio
 import os
 
-import src.common.config.Settings as common_settings
+import common.config.Settings as common_settings
 from Kathara.manager.Kathara import Kathara
 from Kathara.model.Machine import Machine
-from src.common.dispatch.IPacketLauncher import IPacketLauncher
-from src.common.packet.Sender import Role
-from src.common.packet.messages import Packet
-from src.provisioner.config.Settings import Settings
+from common.dispatch.IPacketLauncher import IPacketLauncher
+from common.packet.Sender import Role
+from common.packet.messages import Packet
+from provisioner.config.Settings import Settings
 
 
 class MachineConnection(IPacketLauncher):

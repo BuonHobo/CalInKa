@@ -1,12 +1,13 @@
 import asyncio
 from pathlib import Path
 
-from src.common.dispatch.Dispatcher import Dispatcher
-from src.common.packet.messages import Packet
+from common.dispatch.IHandler import IHandler
+from common.dispatch.Dispatcher import Dispatcher
+from common.packet.messages import Packet
 
 
 class PipeReadProtocol(asyncio.Protocol):
-    def __init__(self, dispatcher: Dispatcher, input_pipe: Path | int):
+    def __init__(self, dispatcher: IHandler, input_pipe: Path | int):
 
         self.__input_pipe = input_pipe
         self.__buffer = ""

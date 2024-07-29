@@ -4,13 +4,13 @@ import os
 from Kathara.manager.Kathara import Kathara
 from Kathara.model.Lab import Lab
 from Kathara.model.Machine import Machine
-from src.common.dispatch.IPacketLauncher import IPacketLauncher
-from src.common.packet.Sender import Role
-from src.common.packet.messages import Packet, IMessage
-from src.common.socket.PipeReadProtocol import PipeReadProtocol
-from src.provisioner.config.Settings import Settings
-from src.provisioner.connection.MachineConnection import MachineConnection
-from src.provisioner.dispatch.Router import Router
+from common.dispatch.IPacketLauncher import IPacketLauncher
+from common.packet.Sender import Role
+from common.packet.messages import Packet, IMessage
+from common.socket.PipeReadProtocol import PipeReadProtocol
+from provisioner.config.Settings import Settings
+from provisioner.connection.MachineConnection import MachineConnection
+from provisioner.dispatch.Router import Router
 
 
 class Provisioner(IPacketLauncher):
@@ -43,7 +43,9 @@ class Provisioner(IPacketLauncher):
         os.set_inheritable(read_pipe, True)
         os.set_inheritable(write_pipe, True)
         for connection in self.__connections.values():
-            await asyncio.get_event_loop().create_task(connection.fork_and_listen(write_pipe))
+            await asyncio.get_event_loop().create_task(
+                connection.fork_and_listen(write_pipe)
+            )
         PipeReadProtocol(router, read_pipe).listen()
 
     async def send(self, packet: Packet):

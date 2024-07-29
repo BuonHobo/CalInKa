@@ -2,13 +2,13 @@ import asyncio
 
 from Kathara.parser.netkit.LabParser import LabParser
 
-from src.common.dispatch.Dispatcher import Dispatcher
-from src.common.dispatch.IPacketLauncher import IPacketLauncher
-from src.common.packet.Sender import Role, Sender
-from src.common.packet.messages import Packet, Poke
-from src.provisioner.config.Settings import Settings
-from src.provisioner.deployment.Provisioner import Provisioner
-from src.provisioner.dispatch.Router import Router
+from common.dispatch.Dispatcher import Dispatcher
+from common.dispatch.IPacketLauncher import IPacketLauncher
+from common.packet.Sender import Role, Sender
+from common.packet.messages import Packet, Poke
+from provisioner.config.Settings import Settings
+from provisioner.deployment.Provisioner import Provisioner
+from provisioner.dispatch.Router import Router
 
 
 async def handle_poke(packet: Packet, launcher: IPacketLauncher):

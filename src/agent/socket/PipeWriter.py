@@ -1,8 +1,8 @@
 import os
 from pathlib import Path
 
-from src.common.dispatch.IPacketLauncher import IPacketLauncher
-from src.common.packet.messages import Packet
+from common.dispatch.IPacketLauncher import IPacketLauncher
+from common.packet.messages import Packet
 
 
 class PipeWriter(IPacketLauncher):

@@ -1,10 +1,10 @@
 import asyncio
 
-from src.common.dispatch.Dispatcher import Dispatcher
-from src.common.dispatch.IHandler import IHandler
-from src.common.dispatch.IPacketLauncher import IPacketLauncher
-from src.common.packet.messages import Packet
-from src.provisioner.config.Settings import Settings
+from common.dispatch.Dispatcher import Dispatcher
+from common.dispatch.IHandler import IHandler
+from common.dispatch.IPacketLauncher import IPacketLauncher
+from common.packet.messages import Packet
+from provisioner.config.Settings import Settings
 
 
 class Router(IHandler):

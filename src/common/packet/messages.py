@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from abc import ABC
 
-from src.common.packet.Sender import SenderSchema, Sender
-from src.marshmallow import post_load, fields, Schema, pre_load
+from common.packet.Sender import SenderSchema, Sender
+from marshmallow import post_load, fields, Schema, pre_load
 
 
 class IMessage(ABC):

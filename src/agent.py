@@ -3,13 +3,13 @@ import os
 import signal
 from pathlib import Path
 
-import src.common.config.Settings as common_settings
-from src.agent.config.Settings import Settings
-from src.agent.socket.PipeWriter import PipeWriter
-from src.common.dispatch.Dispatcher import Dispatcher
-from src.common.dispatch.IPacketLauncher import IPacketLauncher
-from src.common.packet.messages import Poke, Packet
-from src.common.socket.PipeReadProtocol import PipeReadProtocol
+import common.config.Settings as common_settings
+from agent.config.Settings import Settings
+from agent.socket.PipeWriter import PipeWriter
+from common.dispatch.Dispatcher import Dispatcher
+from common.dispatch.IPacketLauncher import IPacketLauncher
+from common.packet.messages import Poke, Packet
+from common.socket.PipeReadProtocol import PipeReadProtocol
 
 
 async def return_poke(packet: Packet, launcher: IPacketLauncher):

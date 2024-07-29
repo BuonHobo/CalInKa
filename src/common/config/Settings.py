@@ -1,4 +1,4 @@
-from src.common.utils.Singleton import Singleton
+from common.utils.Singleton import Singleton
 
 
 class Settings(Singleton):
