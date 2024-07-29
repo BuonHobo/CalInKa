@@ -3,3 +3,4 @@
 pyrightconfig.json
 .zed/
 __pycache__
+.idea

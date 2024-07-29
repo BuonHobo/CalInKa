@@ -3,7 +3,7 @@ import asyncio
 from Kathara.parser.netkit.LabParser import LabParser
 
 from common.dispatch.SingletonLauncher import SingletonLauncher
-from common.dispatch.Dispatcher import Dispatcher
+from common.dispatch.Dispatcher import Dispatcher, handler_for
 from common.dispatch.IPacketLauncher import IPacketLauncher
 from common.packet.Sender import Role, Sender
 from common.packet.messages import Command, Packet, Poke
@@ -12,6 +12,7 @@ from provisioner.deployment.Provisioner import Provisioner
 from provisioner.dispatch.Router import Router
 
 
+@handler_for(Poke)
 async def handle_poke(packet: Packet):
     poke = packet.message
     assert isinstance(poke, Poke)
@@ -22,15 +23,9 @@ async def handle_poke(packet: Packet):
 
 async def main(p: Provisioner):
     await p.deploy()
-    d = Dispatcher()
-    r = Router(d)
-    d.register(Poke, handle_poke)
-
-    await p.start_routing(r)
+    await p.start_routing()
     await p.send(
-        Packet.from_message(
-            Command("echo ciao > ciao"), Sender("red", Role.CONTROLLER), "blue"
-        )
+        Packet.from_message(Poke(0), Sender("provisioner", Role.PROVISIONER), "blue")
     )
 
 

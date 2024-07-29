@@ -42,7 +42,7 @@ class Provisioner(IPacketLauncher):
             )
         )
 
-    async def start_routing(self, router: Router):
+    async def start_routing(self):
         read_pipe, write_pipe = os.pipe()
         os.set_inheritable(read_pipe, True)
         os.set_inheritable(write_pipe, True)
@@ -50,7 +50,7 @@ class Provisioner(IPacketLauncher):
             await asyncio.get_event_loop().create_task(
                 connection.fork_and_listen(write_pipe)
             )
-        PipeReadProtocol(router, read_pipe).listen()
+        PipeReadProtocol(Router(), read_pipe).listen()
 
     async def send(self, packet: Packet):
         await asyncio.get_event_loop().create_task(

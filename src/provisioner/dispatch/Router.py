@@ -10,18 +10,14 @@ from typing import Optional
 
 
 class Router(IHandler):
-    def __init__(
-        self,
-        handler: IHandler,
-        launcher: Optional[IPacketLauncher] = None,
-    ):
-        self.handler = handler
-        self.__launcher = launcher or SingletonLauncher.get_instance()
-
     async def handle(self, packet: Packet):
         print("received", packet.to_json())
         if packet.dst == Settings.sender.name:
-            await asyncio.get_event_loop().create_task(self.handler.handle(packet))
+            await asyncio.get_event_loop().create_task(
+                Dispatcher.get_instance().handle(packet)
+            )
             return
         else:
-            await asyncio.get_event_loop().create_task(self.__launcher.send(packet))
+            await asyncio.get_event_loop().create_task(
+                SingletonLauncher.get_instance().send(packet)
+            )

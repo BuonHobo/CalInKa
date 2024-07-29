@@ -6,19 +6,19 @@ from common.packet.messages import Packet, IMessage
 
 
 class SingletonLauncher(IPacketLauncher):
-    instance: Optional[SingletonLauncher] = None
+    __instance: Optional[SingletonLauncher] = None
 
     @staticmethod
     def get_instance() -> SingletonLauncher:
-        if SingletonLauncher.instance is None:
+        if SingletonLauncher.__instance is None:
             raise Exception("SingletonLauncher is not initialized")
-        return SingletonLauncher.instance
+        return SingletonLauncher.__instance
 
     def __init__(self, packet_launcher: IPacketLauncher):
-        if self.instance is not None:
+        if self.__instance is not None:
             raise Exception("SingletonLauncher is a singleton")
         self.__launcher = packet_launcher
-        SingletonLauncher.instance = self
+        SingletonLauncher.__instance = self
 
     async def send(self, packet: Packet):
         await self.__launcher.send(packet)
