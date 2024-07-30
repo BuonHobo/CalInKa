@@ -41,7 +41,7 @@ class Dispatcher(IHandler):
         if handlers := self.__handlers.get(type(packet.message)):
             for handler in handlers:
                 if is_instance_or_subclass(handler, IHandler):
-                    await asyncio.get_event_loop().create_task(handler.handle(packet))
+                    await asyncio.get_event_loop().create_task(handler.handle(packet))  # type: ignore
                 elif isinstance(handler, Callable):
                     await asyncio.get_event_loop().create_task(handler(packet))
 
