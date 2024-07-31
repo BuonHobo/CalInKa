@@ -1,0 +1,4 @@
+ip a add 10.10.10.10/24 dev eth0
+
+cd /caldera
+python3 server.py --insecure &
